@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -58,6 +59,12 @@ public class JDBCDAOTour implements DAOTour {
             
         }catch( Exception ex ){
             Logger.getLogger(getClass().getName()).error(ex);
+        } finally {
+            try {
+                con.close();
+            } catch (SQLException | NullPointerException ex) {
+                Logger.getLogger(getClass().getName()).error(ex);
+            }
         }
     }
 
