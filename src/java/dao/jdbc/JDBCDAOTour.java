@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -29,7 +28,6 @@ public class JDBCDAOTour implements DAOTour {
     private final static String CREATE_TOUR = "INSERT INTO `touragency`.`tour` "
             + "(`name`, `departure`, `arrival`, `type`, `places_left`, `price`, `min_price`, description) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
-    private Connection con;
 
     /**
      * create tour and assign new id to tour
@@ -50,21 +48,17 @@ public class JDBCDAOTour implements DAOTour {
             statement.setInt(7, tour.getMinPrice());
             statement.setString(8 , tour.getDescription());
             statement.execute();
-            ResultSet key = statement.getGeneratedKeys();
-            int itemId = 0;
-            if( key.next() ){
-                itemId = key.getInt(1);
-                tour.setId(itemId);
+            
+            try (ResultSet key = statement.getGeneratedKeys()) {
+                int itemId;
+                if( key.next() ){
+                    itemId = key.getInt(1);
+                    tour.setId(itemId);
+                }
             }
             
         }catch( Exception ex ){
             Logger.getLogger(getClass().getName()).error(ex);
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException | NullPointerException ex) {
-                Logger.getLogger(getClass().getName()).error(ex);
-            }
         }
     }
 
@@ -81,8 +75,9 @@ public class JDBCDAOTour implements DAOTour {
     @Override
     public Tour find(int id) {
         Tour tour = null;
-        con = JdbcConnection.getInstance().getConnection();
-        try(PreparedStatement statement = con.prepareStatement(FIND_TOUR_BY_ID)){
+        
+        try( Connection con = JdbcConnection.getInstance().getConnection();
+                PreparedStatement statement = con.prepareStatement(FIND_TOUR_BY_ID)){
             statement.setInt(1 , id);            
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
@@ -100,13 +95,8 @@ public class JDBCDAOTour implements DAOTour {
             }
         } catch (SQLException ex) {
             Logger.getLogger(getClass().getName()).error(ex);
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(getClass().getName()).error(ex);
-            }
-        }
+        } 
+        
         return tour;
 
     }
@@ -114,8 +104,9 @@ public class JDBCDAOTour implements DAOTour {
     @Override
     public List<Tour> findAll() {
         List<Tour> tours = new ArrayList<>();
-        con = JdbcConnection.getInstance().getConnection();
-        try (Statement query = con.createStatement()) {
+        
+        try (Connection con = JdbcConnection.getInstance().getConnection();
+                Statement query = con.createStatement()) {
             ResultSet rs = query.executeQuery(FIND_ALL_TOURS);
             while (rs.next()) {
                 tours.add(new Tour(rs.getInt(1) ,
@@ -132,13 +123,8 @@ public class JDBCDAOTour implements DAOTour {
             }
         } catch (SQLException ex) {
             Logger.getLogger(getClass().getName()).error(ex);
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(getClass().getName()).error(ex);
-            }
-        }
+        } 
+        
         return tours;
 
     }
@@ -151,8 +137,9 @@ public class JDBCDAOTour implements DAOTour {
     @Override
     public List<Tour> findAllByType(String tourType) {
         List<Tour> tours = new ArrayList<>();
-        con = JdbcConnection.getInstance().getConnection();
-        try(PreparedStatement statement = con.prepareStatement(FIND_ALL_TOURS_BY_TYPE)){
+        
+        try(Connection con = JdbcConnection.getInstance().getConnection();
+                PreparedStatement statement = con.prepareStatement(FIND_ALL_TOURS_BY_TYPE)){
             statement.setString(1 , tourType);
             
             ResultSet rs = statement.executeQuery();
@@ -173,13 +160,8 @@ public class JDBCDAOTour implements DAOTour {
             
         } catch (SQLException ex) {
             Logger.getLogger(getClass().getName()).error(ex);
-        } finally {
-            try {
-                con.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(getClass().getName()).error(ex);
-            }
-        }
+        } 
+        
         return tours;
     }
 }
