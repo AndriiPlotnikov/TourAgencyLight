@@ -101,6 +101,10 @@ public class JDBCDAOTour implements DAOTour {
 
     }
 
+    /**
+     * find all tours
+     * @return all tours
+     */
     @Override
     public List<Tour> findAll() {
         List<Tour> tours = new ArrayList<>();
